@@ -1,2 +1,4 @@
 # Learning-Management-System
-School CS Project 2020-21
+A learning management system which enables teachers and students to create and submit assignments, live classes, access notes and video lessons and more
+
+
