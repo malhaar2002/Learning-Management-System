@@ -1,0 +1,579 @@
+import mysql.connector
+from tkinter import *
+from tkinter import filedialog
+from PIL import ImageTk, Image
+from functools import partial
+import os
+import matplotlib.figure
+import matplotlib.patches
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+mydb = mysql.connector.connect(
+host = "localhost",
+user = "root",
+password = "malhaar",
+database = "school_portal")
+mycursor = mydb.cursor()
+
+class Teacher():
+
+    def __init__(self, name, regno, dob, contactno, subject, pin, email):
+        self.name = name
+        self.regno = int(regno)
+        self.dob = dob
+        self.contactno = int(contactno)
+        self.subject = subject
+        self.pin = int(pin)
+        self.emailID = email
+
+class Student():
+
+    def __init__(self, name, regno, dob, contactno, grade, section, pin, email):
+        self.name = name
+        self.regno = int(regno)
+        self.dob = dob
+        self.contactno = int(contactno)
+        self.grade = int(grade)
+        self.section = section
+        self.pin = int(pin)
+        self.emailID = email
+
+def start():
+
+    welcomeLabel = Label(root, text = "Hey there! Welcome to School Portal.", fg = "white", bg = "blue", font=("Segoe Print", 30)).grid(column = 1, row = 0, padx = 30, pady = 40)
+
+    createUserButton = Button(root, image = signupPhoto, padx = 10, pady = 10, command = create_user, borderwidth = 1).grid(column = 0, row = 1, padx = (20, 20), pady = 60)
+
+    loginButton = Button(root, image = loginPhoto, padx = 10, pady = 10, command = login, borderwidth = 1).grid(row = 1, column = 2, padx = 50, pady = 60)
+
+
+def create_user():
+
+    root.wm_state('iconic')
+    window1 = Toplevel()
+    window1.title("Create User")
+    window1.geometry("1000x600")
+    window1.configure(bg = "#f5f5dc")
+    window1.resizable(False, False)
+
+    createUserLabel = Label(window1, text = "Create User", font=("Comic Sans MS", 24)).grid(row = 0, column = 1, padx = 30, pady = 40)
+
+    RadioValue = StringVar()
+    teacherRadio = Button(window1, text = "Teacher", font = ('Segoe Print', 12), command = create_teacher).grid(row = 1, column = 0, padx = (20, 20))
+    studentRadio = Button(window1, text = "Student", font = ('Segoe Print', 12), command = create_student).grid(row = 1, column = 2, padx = (20, 20))
+
+def create_teacher():
+
+    window_teacher = Toplevel()
+    window_teacher.title("Create User")
+    window_teacher.geometry("1000x600")
+    window_teacher.configure(bg = "#f5f5dc")
+    window_teacher.resizable(False, False)
+
+    createUserLabel = Label(window_teacher, text = "Create User", font=("Comic Sans MS", 24)).grid(row = 0, column = 1, padx = 30, pady = 40)
+
+    nameLabel = Label(window_teacher, text = "Name").grid(row = 2, column = 0)
+    nameVar = StringVar()
+    nameInput = Entry(window_teacher, textvariable = nameVar).grid(row = 2, column = 1, padx = (20, 20))
+
+    regNoLabel = Label(window_teacher, text = "Registration number").grid(row = 3, column = 0)
+    regNoVar = IntVar()
+    regNoInput = Entry(window_teacher, textvariable = regNoVar).grid(row = 3, column = 1, padx = (20, 20))
+
+    dobLabel = Label(window_teacher, text = "Date of birth (YYYY-MM-DD)").grid(row = 4, column = 0)
+    dobVar = StringVar()
+    dobInput = Entry(window_teacher, textvariable = dobVar).grid(row = 4, column = 1, padx = (20, 20))
+
+    contactLabel = Label(window_teacher, text = "Contact number").grid(row = 5, column = 0)
+    contactVar = IntVar()
+    contactInput = Entry(window_teacher, textvariable = contactVar).grid(row = 5, column = 1, padx = (20, 20))
+
+    subjectLabel = Label(window_teacher, text = "Subject").grid(row = 6, column = 0)
+    subjectVar = StringVar()
+    physicsRadio = Radiobutton(window_teacher, text = "Physics", value = "Physics", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 0, padx = (20, 20), pady = 50)
+    mathsRadio = Radiobutton(window_teacher, text = "Maths", value = "Maths", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 1, padx = (20, 20), pady = 50)
+    chemistryRadio = Radiobutton(window_teacher, text = "Chemistry", value = "Chemistry", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 2, padx = (20, 20), pady = 50)
+    csRadio = Radiobutton(window_teacher, text = "Computer Science", value = "CS", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 3, padx = (20, 20), pady = 50)
+    englishRadio = Radiobutton(window_teacher, text = "English", value = "English", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 4, padx = (20, 20), pady = 50)
+
+    emailLabel = Label(window_teacher, text = "Enter email address").grid(row = 8, column = 0)
+    emailVar = StringVar()
+    emailInput = Entry(window_teacher, textvariable = emailVar).grid(row = 8, column = 1)
+
+    pinLabel = Label(window_teacher, text = "Enter 4-digit pin").grid(row = 9, column = 0, padx = (20, 20))
+    pinVar = IntVar()
+    pinEntry = Entry(window_teacher, textvariable = pinVar).grid(row = 9, column = 1, padx = (20, 20))
+
+    def submit_createUser():
+
+        try:
+            teacherChar = Teacher(nameVar.get().title(), regNoVar.get(), dobVar.get(), contactVar.get(), subjectVar.get(), pinVar.get(), emailVar.get())
+            sql = "INSERT INTO teachers (Name, Pin, Subject, RegistrationNo, DOB, ContactNo, EmailID) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            val = (teacherChar.name, teacherChar.pin, teacherChar.subject, teacherChar.regno, teacherChar.dob, teacherChar.contactno, teacherChar.emailID)
+            mycursor.execute(sql, val)
+            mydb.commit()
+            accountCreatedLabel = Label(window_teacher, text = "Account created successfully!").grid(row = 11, column = 0)
+
+        except Exception as e:
+            accoundNotCreatedLabel = Label(window_teacher, text = "Oops! We could not create the account. Please check all your data and try again.").grid(row = 11, column = 0)
+            print(e)
+
+    submitButton = Button(window_teacher, text = "Submit", command = submit_createUser).grid(row = 10, column = 0)
+
+def create_student():
+
+    window_student = Toplevel()
+    window_student.title("Create User")
+    window_student.geometry("1000x600")
+    window_student.configure(bg = "#f5f5dc")
+    window_student.resizable(False, False)
+
+    createUserLabel = Label(window_student, text = "Create User", font=("Comic Sans MS", 24)).grid(row = 0, column = 1, padx = 30, pady = 40)
+
+    nameLabel = Label(window_student, text = "Name").grid(row = 2, column = 0)
+    nameVar = StringVar()
+    nameInput = Entry(window_student, textvariable = nameVar).grid(row = 2, column = 1, padx = (20, 20))
+
+    regNoLabel = Label(window_student, text = "Registration number").grid(row = 3, column = 0)
+    regNoVar = IntVar()
+    regNoInput = Entry(window_student, textvariable = regNoVar).grid(row = 3, column = 1, padx = (20, 20))
+
+    dobLabel = Label(window_student, text = "Date of birth (YYYY-MM-DD)").grid(row = 4, column = 0)
+    dobVar = StringVar()
+    dobInput = Entry(window_student, textvariable = dobVar).grid(row = 4, column = 1, padx = (20, 20))
+
+    contactLabel = Label(window_student, text = "Contact number").grid(row = 5, column = 0)
+    contactVar = IntVar()
+    contactInput = Entry(window_student, textvariable = contactVar).grid(row = 5, column = 1, padx = (20, 20))
+
+    gradeLabel = Label(window_student, text = "Grade").grid(row = 6, column = 0)
+    gradeVar = IntVar()
+    gradeInput = Entry(window_student, textvariable = gradeVar).grid(row = 6, column = 1)
+
+    sectionLabel = Label(window_student, text = "Section").grid(row = 7, column = 0)
+    sectionVar = StringVar()
+    sectionInput = Entry(window_student, textvariable = sectionVar).grid(row = 7, column = 1)
+
+    emailLabel = Label(window_student, text = "Enter email address").grid(row = 8, column = 0)
+    emailVar = StringVar()
+    emailInput = Entry(window_student, textvariable = emailVar).grid(row = 8, column = 1)
+
+    pinLabel = Label(window_student, text = "Enter 4-digit pin").grid(row = 9, column = 0, padx = (20, 20))
+    pinVar = IntVar()
+    pinEntry = Entry(window_student, textvariable = pinVar).grid(row = 9, column = 1, padx = (20, 20))
+
+    def submit_createUser():
+
+        try:
+            studentChar = Student(nameVar.get().title(), regNoVar.get(), dobVar.get(), contactVar.get(), gradeVar.get(), sectionVar.get(), pinVar.get(), emailVar.get())
+            sql = "INSERT INTO students (Name, Pin, RegistrationNo, DOB, ContactNo, Grade, Section, EmailID) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+            val = (studentChar.name, studentChar.pin, studentChar.regno, studentChar.dob, studentChar.contactno, studentChar.grade, studentChar.section, studentChar.emailID)
+            mycursor.execute(sql, val)
+            mydb.commit()
+            accountCreatedLabel = Label(window_student, text = "Account created successfully!").grid(row = 11, column = 0)
+
+        except Exception as e:
+            accoundNotCreatedLabel = Label(window_student, text = "Oops! We could not create the account. Please check all your data and try again.").grid(row = 11, column = 0)
+            print(e)
+
+    submitButton = Button(window_student, text = "Submit", command = submit_createUser).grid(row = 10, column = 0)
+
+
+def login():
+
+    root.wm_state('iconic')
+    window2 = Toplevel()
+    window2.title("Login")
+    window2.geometry("1000x600")
+    window2.configure(bg = "#f5f5dc")
+    window2.resizable(False, False)
+
+    createUserLabel = Label(window2, text = "Login", font=("Comic Sans MS", 24)).grid(row = 0, column = 1, padx = 30, pady = 20)
+
+    RadioValue = StringVar()
+    teacherRadio = Radiobutton(window2, text = "Teacher", value = "Teacher", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = RadioValue).grid(row = 1, column = 0, padx = (20, 20), pady = 50)
+    studentRadio = Radiobutton(window2, text = "Student", value = "Student", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = RadioValue).grid(row = 1, column = 2, padx = (20, 20), pady = 50)
+
+    regNoLabel = Label(window2, text = "Enter your registration number", font = ('Segoe Print', 12)).grid(row = 2, column = 0)
+    global regNoVar
+    regNoVar = IntVar()
+    nameInput = Entry(window2, textvariable = regNoVar).grid(row = 2, column = 1, padx = (20, 20), pady = 60)
+
+    pinLabel = Label(window2, text = "Enter 4-digit pin", font = ('Segoe Print', 12)).grid(row = 3, column = 0, padx = (20, 20), pady = 60)
+    pinVar = IntVar()
+    pinEntry = Entry(window2, textvariable = pinVar).grid(row = 3, column = 1, padx = (20, 20), pady = 60)
+
+    def submit_login():
+
+        try:
+            mycursor.execute(f"select Pin from {RadioValue.get()}s where RegistrationNo = '{regNoVar.get()}'")
+            actual_pin = mycursor.fetchall()
+
+            if pinVar.get() == actual_pin[0][0]:
+                if RadioValue.get() == "Teacher":
+                    teacher()
+                    window2.destroy()
+                elif RadioValue.get() == "Student":
+                    student()
+                    window2.destroy()
+            else:
+                wrongPinLabel = Label(window2, text = "Wrong pin entered").grid(row = 5, column = 0)
+
+        except Exception as e:
+            errorLabel = Label(window2, text = "Oops! We could not create the account. Please check all your data and try again.").grid(row = 5, column = 0)
+            print(e)
+
+    loginButton = Button(window2, text = "Login", command = submit_login).grid(row = 4, column = 0)
+
+
+def teacher():
+
+    window3 = Toplevel()
+    window3.title("Home Page")
+    window3.geometry("1000x600")
+    window3.configure(bg = "#f5f5dc")
+    window3.resizable(False, False)
+
+    def live_class():
+
+        liveclassframe = Frame(window3)
+        liveclassframe.grid(row = 1, column = 0)
+
+        linkLabel = Label(liveclassframe, text = "Enter live class link:").grid(row = 0, column = 0)
+        linkValue = StringVar()
+        linkInput = Entry(liveclassframe, textvariable = linkValue).grid(row = 0, column = 1, padx = 5)
+
+        def submit_link():
+
+            sql = "DELETE FROM LiveClassLink"
+            mycursor.execute(sql)
+            mydb.commit()
+
+            sql = f"INSERT INTO LiveClassLink VALUES ('{linkValue.get()}')"
+            mycursor.execute(sql)
+            mydb.commit()
+            linkUploadSuccessfulLabel = Label(liveclassframe, text = "Link uploaded successfully").grid(row = 1, column = 0)
+
+        def quit():
+
+            liveclassframe.grid_forget()
+            liveclassframe.destroy()
+
+        linkSubmitButton = Button(liveclassframe, text = "Submit", command = submit_link).grid(row = 2, column = 0, pady = 30)
+        quitButton = Button(liveclassframe, text = "Quit", font = ('calibri', 10, 'bold', 'underline'), foreground = 'red', command = quit).grid(row = 2, column = 1, pady = 30, padx = 10)
+
+
+    def check_attendance():
+
+        window_attendance = Toplevel()
+        window_attendance.title("Attendance")
+        window_attendance.geometry("1000x600")
+        window_attendance.configure(bg = "#f5f5dc")
+        window_attendance.resizable(False, False)
+
+        sql = "SELECT * FROM attendance ORDER BY Student ASC"
+        mycursor.execute(sql)
+        result = mycursor.fetchall()
+
+        for i in range(len(result)):
+
+            studLabel = Label(window_attendance, text = result[i][0]).grid(row = 0, column = i)
+
+            fig = matplotlib.figure.Figure(figsize=(2,2))
+            ax = fig.add_subplot(111)
+            present = result[i][1]
+            absent = 250 - result[i][1]
+            ax.pie([present, absent])
+            ax.legend([f"Present: {present}", f"Absent: {absent}"])
+
+            circle=matplotlib.patches.Circle( (0,0), 0.7, color='white')
+            ax.add_artist(circle)
+
+            canvas = FigureCanvasTkAgg(fig, master=window_attendance)
+            canvas.get_tk_widget().grid(row = 1, column = i)
+            canvas.draw()
+
+
+    def class_notes():
+
+        notesframe = Frame(window3)
+        notesframe.grid(row = 2, column = 1)
+
+        chapterLabel = Label(notesframe, text = "Chapter name").grid(row = 0, column = 0, pady = 20)
+        chapterValue = StringVar()
+        chapterInput = Entry(notesframe, textvariable = chapterValue).grid(row = 0, column = 1, pady = 20, padx = 5)
+
+        classNoLabel = Label(notesframe, text = "Class number").grid(row = 1, column = 0, pady = 20)
+        classNoValue = IntVar()
+        classNoInput = Entry(notesframe, textvariable = classNoValue).grid(row = 1, column = 1, pady = 20, padx = 5)
+
+        def choose_file():
+
+            filename = filedialog.askopenfilename(initialdir = "*", title = "Select a file", filetypes = (("pdf files", "*.pdf"), ("text files", "*.txt")))
+
+            sql = f"SELECT Subject FROM teachers WHERE RegistrationNo = {regNoVar.get()}"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            sql = f"INSERT INTO {result[0][0]} (Chapter, ClassNumber, Notes) VALUES ('{chapterValue.get()}', {classNoValue.get()}, '{filename}')"
+            mycursor.execute(sql)
+            mydb.commit()
+
+            classNotesUploadSuccessful = Label(notesframe, text = "Notes uploaded successfully.").grid(row = 3, column = 0)
+
+        def quit():
+
+            notesframe.grid_forget()
+            notesframe.destroy()
+
+        chooseFileButton = Button(notesframe, text = "Choose file", command = choose_file).grid(row = 2, column = 0, pady = 20)
+        quitButton = Button(notesframe, text = "Quit", font = ('calibri', 10, 'bold', 'underline'), foreground = 'red', command = quit).grid(row = 2, column = 1, pady = 20, padx = 10)
+
+    def class_recording():
+
+        recordframe = Frame(window3)
+        recordframe.grid(row = 2, column = 2)
+
+        chapterLabel = Label(recordframe, text = "Chapter name").grid(row = 0, column = 0, pady = 20)
+        chapterValue = StringVar()
+        chapterInput = Entry(recordframe, textvariable = chapterValue).grid(row = 0, column = 1, pady = 20, padx = 5)
+
+        classNoLabel = Label(recordframe, text = "Class number").grid(row = 1, column = 0, pady = 20)
+        classNoValue = IntVar()
+        classNoInput = Entry(recordframe, textvariable = classNoValue).grid(row = 1, column = 1, pady = 20, padx = 5)
+
+        def choose_file():
+
+            filename = filedialog.askopenfilename(initialdir = "*", title = "Select a file", filetypes = [("Mp4 files", "*.mp4")])
+
+            sql = f"SELECT Subject FROM teachers WHERE RegistrationNo = {regNoVar.get()}"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            sql = f"INSERT INTO {result[0][0]} (Chapter, ClassNumber, Recording) VALUES ('{chapterValue.get()}', {classNoValue.get()}, '{filename}')"
+            mycursor.execute(sql)
+            mydb.commit()
+
+            classRecordingUploadSuccessful = Label(recordframe, text = "Recording uploaded successfully.").grid(row = 3, column = 0)
+
+        def quit():
+
+            recordframe.grid_forget()
+            recordframe.destroy()
+
+        chooseFileButton = Button(recordframe, text = "Choose file", command = choose_file).grid(row = 2, column = 0, pady = 20)
+        quitButton = Button(recordframe, text = "Quit", font = ('calibri', 10, 'bold', 'underline'), foreground = 'red', command = quit).grid(row = 2, column = 1, pady = 20, padx = 10)
+
+
+    LiveClassLinkButton = Button(window3, image = liveClassPhoto, command = live_class).grid(row = 1, column = 0)
+    checkAttendanceButton = Button(window3, image = attendancePhoto, command = check_attendance).grid(row = 1, column = 1)
+    newAssignmentButton = Button(window3, image = assignmentPhoto).grid(row = 2, column = 0)
+    classNotesButton = Button(window3, image = classNotesPhoto, command = class_notes).grid(row = 2, column = 1)
+    classRecordingButton = Button(window3, image = classRecordingPhoto, command = class_recording).grid(row = 2, column = 2)
+
+
+def student():
+
+    window4 = Toplevel()
+    window4.title("Home Page")
+    window4.geometry("1000x600")
+    window4.configure(bg = "#f5f5dc")
+    window4.resizable(False, False)
+
+    def live_class():
+
+        sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+        mycursor.execute(sql)
+        studName = mycursor.fetchall()
+
+        sql = f"UPDATE attendance SET NoOfDaysPresent = NoOfDaysPresent + 1 where Student = '{studName[0][0]}'"
+        mycursor.execute(sql)
+        mydb.commit()
+        print("Attendance marked successfully.")
+
+        print("Joining live class...")
+        from selenium import webdriver
+        chromedriver = r"C:\Users\Malhaar\Downloads\chromedriver.exe"
+        driver = webdriver.Chrome(chromedriver)
+
+        sql = "SELECT Link FROM LiveClassLink"
+        mycursor.execute(sql)
+        result = mycursor.fetchall()[0][0]
+        driver.get(result)
+        driver.maximize_window()
+        while True:
+            pass
+
+    def class_notes():
+
+        window_notes = Toplevel()
+        window_notes.title("Class Notes")
+        window_notes.geometry("1200x700")
+        background_label = Label(window_notes, image = matrixBackground)
+        background_label.place(x=0, y=0, relwidth=1, relheight=1)
+        window_notes.resizable(False, False)
+        window4.wm_state('iconic')
+
+
+        def open_this(address):
+            os.startfile(address)
+
+        def physics_notes():
+
+            sql = "SELECT * FROM physics where Notes is not NULL"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            physicsframe = Frame(window_notes)
+            physicsframe.grid(row = 0, column = 0)
+
+            for i in range(len(result)):
+                link = f"{result[i][0]} Class {result[i][1]}"
+                global address
+                address = result[i][2]
+                noteLinkButton = Button(physicsframe, text = link, command = partial(open_this, address)).grid(row = 0, column = i)
+
+        def maths_notes():
+
+            sql = "SELECT * FROM maths where Notes is not NULL"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            mathsframe = Frame(window_notes)
+            mathsframe.grid(row = 0, column = 1)
+
+            for i in range(len(result)):
+                link = f"{result[i][0]} Class {result[i][1]}"
+                global address
+                address = result[i][2]
+                noteLinkButton = Button(mathsframe, text = link, command = partial(open_this, address)).grid(row = 0, column = i)
+
+        def chemistry_notes():
+
+            chemframe = Frame(window_notes)
+            chemframe.grid(row = 1, column = 0)
+
+            sql = "SELECT * FROM chemistry where Notes is not NULL"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            for i in range(len(result)):
+                link = f"{result[i][0]} Class {result[i][1]}"
+                global address
+                address = result[i][2]
+                noteLinkButton = Button(chemframe, text = link, command = partial(open_this, address)).grid(row = 0, column = i)
+
+        def cs_notes():
+
+            csframe = Frame(window_notes)
+            csframe.grid(row = 1, column = 1)
+
+            sql = "SELECT * FROM cs where Notes is not NULL"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            for i in range(len(result)):
+                link = f"{result[i][0]} Class {result[i][1]}"
+                global address
+                address = result[i][2]
+                noteLinkButton = Button(csframe, text = link, command = partial(open_this, address)).grid(row = 0, column = i)
+
+        physicsnotesButton = Button(window_notes, image = physicsphoto, font = ('Segoe Print', 12), command = physics_notes).grid(row = 0, column = 0, padx = (20, 20), pady = 50)
+        mathsnotesButton = Button(window_notes, image = mathsphoto, font = ('Segoe Print', 12), command = maths_notes).grid(row = 0, column = 1, padx = (20, 20), pady = 50)
+        chemistrynotesButton = Button(window_notes, image = chemphoto, font = ('Segoe Print', 12), command = chemistry_notes).grid(row = 1, column = 0, padx = (20, 20), pady = 40)
+        csnotesButton = Button(window_notes, image = csphoto, font = ('Segoe Print', 12), command = cs_notes).grid(row = 1, column = 1, padx = (20, 20), pady = 40)
+
+    def class_recording():
+
+        window_recording = Toplevel()
+        window_recording.title("Class Recording")
+        window_recording.geometry("1200x700")
+        background_label = Label(window_recording, image = matrixBackground)
+        background_label.place(x=0, y=0, relwidth=1, relheight=1)
+        window_recording.resizable(False, False)
+        window4.wm_state('iconic')
+
+
+        def open_this(address):
+            os.startfile(address)
+
+        def physics_recording():
+            sql = "SELECT Chapter, ClassNumber, Recording FROM physics where Recording is not NULL"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+            for i in range(len(result)):
+                link = f"{result[i][0]} Class {result[i][1]}"
+                global address
+                address = result[i][2]
+                noteLinkButton = Button(window_recording, text = link, command = partial(open_this, address)).grid(row = 6, column = i)
+
+        def maths_recording():
+            sql = "SELECT Chapter, ClassNumber, Recording FROM maths where Recording is not NULL"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+            for i in range(len(result)):
+                link = f"{result[i][0]} Class {result[i][1]}"
+                global address
+                address = result[i][2]
+                noteLinkButton = Button(window_recording, text = link, command = partial(open_this, address)).grid(row = 6, column = i)
+
+        def chemistry_recording():
+            sql = "SELECT Chapter, ClassNumber, Recording FROM chemistry where Recording is not NULL"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+            for i in range(len(result)):
+                link = f"{result[i][0]} Class {result[i][1]}"
+                global address
+                address = result[i][2]
+                noteLinkButton = Button(window_recording, text = link, command = partial(open_this, address)).grid(row = 6, column = i)
+
+        def cs_recording():
+            sql = "SELECT Chapter, ClassNumber, Recording FROM cs where Recording is not NULL"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+            for i in range(len(result)):
+                link = f"{result[i][0]} Class {result[i][1]}"
+                global address
+                address = result[i][2]
+                noteLinkButton = Button(window_recording, text = link, command = partial(open_this, address)).grid(row = 6, column = i)
+
+        physicsrecButton = Button(window_recording, image = physicsphoto, font = ('Segoe Print', 12), command = physics_recording).grid(row = 0, column = 0, padx = (20, 20), pady = 50)
+        mathsrecButton = Button(window_recording, image = mathsphoto, font = ('Segoe Print', 12), command = maths_recording).grid(row = 0, column = 1, padx = (20, 20), pady = 50)
+        chemistryrecButton = Button(window_recording, image = chemphoto, font = ('Segoe Print', 12), command = chemistry_recording).grid(row = 1, column = 0, padx = (20, 20), pady = 40)
+        csrecButton = Button(window_recording, image = csphoto, font = ('Segoe Print', 12), command = cs_recording).grid(row = 1, column = 1, padx = (20, 20), pady = 40)
+
+
+    LiveClassLinkButton = Button(window4, image = liveClassPhoto, command = live_class).grid(row = 1, column = 0)
+    newAssignmentButton = Button(window4, image = assignmentPhoto).grid(row = 1, column = 1)
+    classNotesButton = Button(window4, image = classNotesPhoto, command = class_notes).grid(row = 2, column = 0)
+    classRecordingButton = Button(window4, image = classRecordingPhoto, command = class_recording).grid(row = 2, column = 1)
+
+
+root = Tk()
+root.title("School Portal")
+#root.geometry("1000x500")
+root.attributes("-fullscreen", True)
+root.configure(bg = "blue")
+root.resizable(False, False)
+
+#-------------------------------------IMAGES----------------------------------------------------------------
+#You need to initialise them here instead of inside the functions, otherwise they take too much time to load
+
+loginPhoto = PhotoImage(file = r"Images\login.png")
+signupPhoto = PhotoImage(file = r"Images\signup.png")
+
+liveClassPhoto = PhotoImage(file = r"Images\liveclass.png")
+classNotesPhoto = PhotoImage(file = r"Images\classnotes.png")
+classRecordingPhoto = PhotoImage(file = r"Images\recording.png")
+assignmentPhoto = PhotoImage(file = r"Images\assignment.png")
+attendancePhoto = PhotoImage(file = r"Images\attendance.png")
+
+physicsphoto = PhotoImage(file = r"Images\physics.png")
+chemphoto = PhotoImage(file = r"Images\chemistry.png")
+mathsphoto = PhotoImage(file = r"Images\maths.png")
+csphoto = PhotoImage(file = r"Images\cs.png")
+matrixBackground = PhotoImage(file = r"Images\matrix_background.png")
+
+start()
+
+root.mainloop()
