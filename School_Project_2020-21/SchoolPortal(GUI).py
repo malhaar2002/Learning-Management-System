@@ -40,11 +40,11 @@ class Student():
 
 def start():
 
-    welcomeLabel = Label(root, text = "Hey there! Welcome to School Portal.", fg = "white", bg = "blue", font=("Segoe Print", 30)).grid(column = 1, row = 0, padx = 30, pady = 40)
+    welcomeLabel = Label(root, text = "Welcome", fg = "white", bg = "black", font=("Segoe Print", 29)).grid(column = 1, row = 0, padx = 280, pady = (275, 180))
 
-    createUserButton = Button(root, image = signupPhoto, padx = 10, pady = 10, command = create_user, borderwidth = 1).grid(column = 0, row = 1, padx = (20, 20), pady = 60)
+    createUserButton = Button(root, text = "Sign Up", padx = 10, pady = 10, command = create_user, borderwidth = 1, bg = "black", fg = "red", font = ('calibri', 15)).grid(column = 0, row = 1, padx = (20, 20))
 
-    loginButton = Button(root, image = loginPhoto, padx = 10, pady = 10, command = login, borderwidth = 1).grid(row = 1, column = 2, padx = 50, pady = 60)
+    loginButton = Button(root, text = "Login", padx = 10, pady = 10, command = login, borderwidth = 1, bg = "black", fg = "red", font = ('calibri', 15)).grid(row = 1, column = 2, padx = (20, 20))
 
 
 def create_user():
@@ -72,37 +72,36 @@ def create_teacher():
 
     createUserLabel = Label(window_teacher, text = "Create User", font=("Comic Sans MS", 24)).grid(row = 0, column = 1, padx = 30, pady = 40)
 
-    nameLabel = Label(window_teacher, text = "Name").grid(row = 2, column = 0)
+    nameLabel = Label(window_teacher, text = "Name").grid(row = 2, column = 0, pady = 10)
     nameVar = StringVar()
-    nameInput = Entry(window_teacher, textvariable = nameVar).grid(row = 2, column = 1, padx = (20, 20))
+    nameInput = Entry(window_teacher, textvariable = nameVar).grid(row = 2, column = 1, padx = (20, 20), pady = 10)
 
-    regNoLabel = Label(window_teacher, text = "Registration number").grid(row = 3, column = 0)
+    regNoLabel = Label(window_teacher, text = "Registration number").grid(row = 3, column = 0, pady = 10)
     regNoVar = IntVar()
-    regNoInput = Entry(window_teacher, textvariable = regNoVar).grid(row = 3, column = 1, padx = (20, 20))
+    regNoInput = Entry(window_teacher, textvariable = regNoVar).grid(row = 3, column = 1, padx = (20, 20), pady = 10)
 
-    dobLabel = Label(window_teacher, text = "Date of birth (YYYY-MM-DD)").grid(row = 4, column = 0)
+    dobLabel = Label(window_teacher, text = "Date of birth (YYYY-MM-DD)").grid(row = 4, column = 0, pady = 10)
     dobVar = StringVar()
-    dobInput = Entry(window_teacher, textvariable = dobVar).grid(row = 4, column = 1, padx = (20, 20))
+    dobInput = Entry(window_teacher, textvariable = dobVar).grid(row = 4, column = 1, padx = (20, 20), pady = 10)
 
-    contactLabel = Label(window_teacher, text = "Contact number").grid(row = 5, column = 0)
+    contactLabel = Label(window_teacher, text = "Contact number").grid(row = 5, column = 0, pady = 10)
     contactVar = IntVar()
-    contactInput = Entry(window_teacher, textvariable = contactVar).grid(row = 5, column = 1, padx = (20, 20))
+    contactInput = Entry(window_teacher, textvariable = contactVar).grid(row = 5, column = 1, padx = (20, 20), pady = 10)
 
     subjectLabel = Label(window_teacher, text = "Subject").grid(row = 6, column = 0)
     subjectVar = StringVar()
     physicsRadio = Radiobutton(window_teacher, text = "Physics", value = "Physics", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 0, padx = (20, 20), pady = 50)
     mathsRadio = Radiobutton(window_teacher, text = "Maths", value = "Maths", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 1, padx = (20, 20), pady = 50)
-    chemistryRadio = Radiobutton(window_teacher, text = "Chemistry", value = "Chemistry", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 2, padx = (20, 20), pady = 50)
+    chemistryRadio = Radiobutton(window_teacher, text = "Chemistry", value = "Chemistry", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 2, padx = (30, 100), pady = 50)
     csRadio = Radiobutton(window_teacher, text = "Computer Science", value = "CS", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 3, padx = (20, 20), pady = 50)
-    englishRadio = Radiobutton(window_teacher, text = "English", value = "English", font = ('Segoe Print', 12), indicator = 0, background = "light blue", variable = subjectVar).grid(row = 7, column = 4, padx = (20, 20), pady = 50)
 
-    emailLabel = Label(window_teacher, text = "Enter email address").grid(row = 8, column = 0)
+    emailLabel = Label(window_teacher, text = "Enter email address").grid(row = 8, column = 0, pady = 10)
     emailVar = StringVar()
-    emailInput = Entry(window_teacher, textvariable = emailVar).grid(row = 8, column = 1)
+    emailInput = Entry(window_teacher, textvariable = emailVar).grid(row = 8, column = 1, pady = 10)
 
-    pinLabel = Label(window_teacher, text = "Enter 4-digit pin").grid(row = 9, column = 0, padx = (20, 20))
+    pinLabel = Label(window_teacher, text = "Enter 4-digit pin").grid(row = 9, column = 0, padx = (20, 20), pady = 10)
     pinVar = IntVar()
-    pinEntry = Entry(window_teacher, textvariable = pinVar).grid(row = 9, column = 1, padx = (20, 20))
+    pinEntry = Entry(window_teacher, textvariable = pinVar).grid(row = 9, column = 1, padx = (20, 20), pady = 10)
 
     def submit_createUser():
 
@@ -118,7 +117,7 @@ def create_teacher():
             accoundNotCreatedLabel = Label(window_teacher, text = "Oops! We could not create the account. Please check all your data and try again.").grid(row = 11, column = 0)
             print(e)
 
-    submitButton = Button(window_teacher, text = "Submit", command = submit_createUser).grid(row = 10, column = 0)
+    submitButton = Button(window_teacher, text = "Submit", command = submit_createUser).grid(row = 10, column = 0, pady = 30)
 
 def create_student():
 
@@ -130,37 +129,37 @@ def create_student():
 
     createUserLabel = Label(window_student, text = "Create User", font=("Comic Sans MS", 24)).grid(row = 0, column = 1, padx = 30, pady = 40)
 
-    nameLabel = Label(window_student, text = "Name").grid(row = 2, column = 0)
+    nameLabel = Label(window_student, text = "Name").grid(row = 2, column = 0, pady = 10)
     nameVar = StringVar()
-    nameInput = Entry(window_student, textvariable = nameVar).grid(row = 2, column = 1, padx = (20, 20))
+    nameInput = Entry(window_student, textvariable = nameVar).grid(row = 2, column = 1, padx = (20, 20), pady = 10)
 
-    regNoLabel = Label(window_student, text = "Registration number").grid(row = 3, column = 0)
+    regNoLabel = Label(window_student, text = "Registration number").grid(row = 3, column = 0, pady = 10)
     regNoVar = IntVar()
-    regNoInput = Entry(window_student, textvariable = regNoVar).grid(row = 3, column = 1, padx = (20, 20))
+    regNoInput = Entry(window_student, textvariable = regNoVar).grid(row = 3, column = 1, padx = (20, 20), pady = 10)
 
-    dobLabel = Label(window_student, text = "Date of birth (YYYY-MM-DD)").grid(row = 4, column = 0)
+    dobLabel = Label(window_student, text = "Date of birth (YYYY-MM-DD)").grid(row = 4, column = 0, pady = 10)
     dobVar = StringVar()
-    dobInput = Entry(window_student, textvariable = dobVar).grid(row = 4, column = 1, padx = (20, 20))
+    dobInput = Entry(window_student, textvariable = dobVar).grid(row = 4, column = 1, padx = (20, 20), pady = 10)
 
-    contactLabel = Label(window_student, text = "Contact number").grid(row = 5, column = 0)
+    contactLabel = Label(window_student, text = "Contact number").grid(row = 5, column = 0, pady = 10)
     contactVar = IntVar()
-    contactInput = Entry(window_student, textvariable = contactVar).grid(row = 5, column = 1, padx = (20, 20))
+    contactInput = Entry(window_student, textvariable = contactVar).grid(row = 5, column = 1, padx = (20, 20), pady = 10)
 
-    gradeLabel = Label(window_student, text = "Grade").grid(row = 6, column = 0)
+    gradeLabel = Label(window_student, text = "Grade").grid(row = 6, column = 0, pady = 10)
     gradeVar = IntVar()
-    gradeInput = Entry(window_student, textvariable = gradeVar).grid(row = 6, column = 1)
+    gradeInput = Entry(window_student, textvariable = gradeVar).grid(row = 6, column = 1, pady = 10)
 
-    sectionLabel = Label(window_student, text = "Section").grid(row = 7, column = 0)
+    sectionLabel = Label(window_student, text = "Section").grid(row = 7, column = 0, pady = 10)
     sectionVar = StringVar()
-    sectionInput = Entry(window_student, textvariable = sectionVar).grid(row = 7, column = 1)
+    sectionInput = Entry(window_student, textvariable = sectionVar).grid(row = 7, column = 1, pady = 10)
 
-    emailLabel = Label(window_student, text = "Enter email address").grid(row = 8, column = 0)
+    emailLabel = Label(window_student, text = "Enter email address").grid(row = 8, column = 0, pady = 10)
     emailVar = StringVar()
-    emailInput = Entry(window_student, textvariable = emailVar).grid(row = 8, column = 1)
+    emailInput = Entry(window_student, textvariable = emailVar).grid(row = 8, column = 1, pady = 10)
 
-    pinLabel = Label(window_student, text = "Enter 4-digit pin").grid(row = 9, column = 0, padx = (20, 20))
+    pinLabel = Label(window_student, text = "Enter 4-digit pin").grid(row = 9, column = 0, padx = (20, 20), pady = 10)
     pinVar = IntVar()
-    pinEntry = Entry(window_student, textvariable = pinVar).grid(row = 9, column = 1, padx = (20, 20))
+    pinEntry = Entry(window_student, textvariable = pinVar).grid(row = 9, column = 1, padx = (20, 20), pady = 10)
 
     def submit_createUser():
 
@@ -176,7 +175,7 @@ def create_student():
             accoundNotCreatedLabel = Label(window_student, text = "Oops! We could not create the account. Please check all your data and try again.").grid(row = 11, column = 0)
             print(e)
 
-    submitButton = Button(window_student, text = "Submit", command = submit_createUser).grid(row = 10, column = 0)
+    submitButton = Button(window_student, text = "Submit", command = submit_createUser).grid(row = 10, column = 0, pady = 30)
 
 
 def login():
@@ -550,17 +549,16 @@ def student():
 
 
 root = Tk()
-root.title("School Portal")
-#root.geometry("1000x500")
-root.attributes("-fullscreen", True)
-root.configure(bg = "blue")
+root.title("Learning Management System")
+root.geometry("1000x600")
+welcomePhoto = PhotoImage(file = r"Images\welcome.png")
+background_label = Label(root, image = welcomePhoto)
+background_label.place(x=0, y=0, relwidth=1, relheight=1)
+root.attributes("-fullscreen", False)
 root.resizable(False, False)
 
 #-------------------------------------IMAGES----------------------------------------------------------------
 #You need to initialise them here instead of inside the functions, otherwise they take too much time to load
-
-loginPhoto = PhotoImage(file = r"Images\login.png")
-signupPhoto = PhotoImage(file = r"Images\signup.png")
 
 liveClassPhoto = PhotoImage(file = r"Images\liveclass.png")
 classNotesPhoto = PhotoImage(file = r"Images\classnotes.png")
