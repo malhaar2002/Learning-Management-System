@@ -7,6 +7,7 @@ import os
 import matplotlib.figure
 import matplotlib.patches
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from datetime import datetime
 
 mydb = mysql.connector.connect(
 host = "localhost",
@@ -114,7 +115,7 @@ def create_teacher():
             accountCreatedLabel = Label(window_teacher, text = "Account created successfully!").grid(row = 11, column = 0)
 
         except Exception as e:
-            accoundNotCreatedLabel = Label(window_teacher, text = "Oops! We could not create the account. Please check all your data and try again.").grid(row = 11, column = 0)
+            accoundNotCreatedLabel = Label(window_teacher, text = "Oops! We could not create the account. Please check all the details and try again.").grid(row = 11, column = 0)
             print(e)
 
     submitButton = Button(window_teacher, text = "Submit", command = submit_createUser).grid(row = 10, column = 0, pady = 30)
@@ -172,7 +173,7 @@ def create_student():
             accountCreatedLabel = Label(window_student, text = "Account created successfully!").grid(row = 11, column = 0)
 
         except Exception as e:
-            accoundNotCreatedLabel = Label(window_student, text = "Oops! We could not create the account. Please check all your data and try again.").grid(row = 11, column = 0)
+            accoundNotCreatedLabel = Label(window_student, text = "Oops! We could not create the account. Please check all the details and try again.").grid(row = 11, column = 0)
             print(e)
 
     submitButton = Button(window_student, text = "Submit", command = submit_createUser).grid(row = 10, column = 0, pady = 30)
@@ -219,7 +220,7 @@ def login():
                 wrongPinLabel = Label(window2, text = "Wrong pin entered").grid(row = 5, column = 0)
 
         except Exception as e:
-            errorLabel = Label(window2, text = "Oops! We could not create the account. Please check all your data and try again.").grid(row = 5, column = 0)
+            errorLabel = Label(window2, text = "Oops! We could not login. Please check all the details and try again.").grid(row = 5, column = 0)
             print(e)
 
     loginButton = Button(window2, text = "Login", command = submit_login).grid(row = 4, column = 0)
@@ -229,9 +230,15 @@ def teacher():
 
     window3 = Toplevel()
     window3.title("Home Page")
-    window3.geometry("1000x600")
-    window3.configure(bg = "#f5f5dc")
+    window3.geometry("1100x800")
+    background_label = Label(window3, image = homescreen)
+    background_label.place(x=0, y=0, relwidth=1, relheight=1)
     window3.resizable(False, False)
+
+    sql = f"SELECT Name FROM teachers WHERE RegistrationNo = {regNoVar.get()}"
+    mycursor.execute(sql)
+    teacher_name = mycursor.fetchall()
+    welcomeLabel = Label(window3, text = f"Welcome, {teacher_name[0][0]}!", font=("Helvetica", 24, "bold"), fg = "blue").grid(row = 0, column = 0, padx = 30, pady = (40, 0))
 
     def live_class():
 
@@ -280,8 +287,14 @@ def teacher():
 
             fig = matplotlib.figure.Figure(figsize=(2,2))
             ax = fig.add_subplot(111)
+
+            school_start = datetime(2020, 3, 1)
+            now = datetime.now()
+            time_difference = now - school_start
+            days_passed = time_difference.days
             present = result[i][1]
-            absent = 250 - result[i][1]
+            absent = days_passed - result[i][1]
+
             ax.pie([present, absent])
             ax.legend([f"Present: {present}", f"Absent: {absent}"])
 
@@ -291,6 +304,45 @@ def teacher():
             canvas = FigureCanvasTkAgg(fig, master=window_attendance)
             canvas.get_tk_widget().grid(row = 1, column = i)
             canvas.draw()
+
+    def assignment():
+
+        assignmentframe = Frame(window3)
+        assignmentframe.grid(row = 2, column = 0)
+
+        chapterLabel = Label(assignmentframe, text = "Chapter name").grid(row = 0, column = 0, pady = 20)
+        chapterValue = StringVar()
+        chapterInput = Entry(assignmentframe, textvariable = chapterValue).grid(row = 0, column = 1, pady = 20, padx = 5)
+
+        topicLabel = Label(assignmentframe, text = "Topic").grid(row = 1, column = 0, pady = 20)
+        topicValue = StringVar()
+        topicInput = Entry(assignmentframe, textvariable = topicValue).grid(row = 1, column = 1, pady = 20, padx = 5)
+
+        lastDateLabel = Label(assignmentframe, text = "Last date of submission (YYYY-MM-DD)").grid(row = 2, column = 0, pady = 20)
+        lastDateValue = StringVar()
+        lastDateInput = Entry(assignmentframe, textvariable = lastDateValue).grid(row = 2, column = 1, padx = 5, pady = 20)
+
+        def choose_file():
+
+            filename = filedialog.askopenfilename(initialdir = "*", title = "Select a file", filetypes = (("pdf files", "*.pdf"), ("text files", "*.txt")))
+
+            sql = f"SELECT Subject FROM teachers WHERE RegistrationNo = {regNoVar.get()}"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            sql = f"INSERT INTO assignments (Subject, Chapter, Topic, Link, LastDate) VALUES ('{result[0][0]}', '{chapterValue.get()}', '{topicValue.get()}', '{filename}', '{lastDateValue.get()}')"
+            mycursor.execute(sql)
+            mydb.commit()
+
+            assignmentUploadSuccessful = Label(assignmentframe, text = "Notes uploaded successfully.").grid(row = 4, column = 0)
+
+        def quit():
+
+            assignmentframe.grid_forget()
+            assignmentframe.destroy()
+
+        chooseFileButton = Button(assignmentframe, text = "Choose file", command = choose_file).grid(row = 3, column = 0, pady = 20)
+        quitButton = Button(assignmentframe, text = "Quit", font = ('calibri', 10, 'bold', 'underline'), foreground = 'red', command = quit).grid(row = 3, column = 1, pady = 20, padx = 10)
 
 
     def class_notes():
@@ -364,20 +416,26 @@ def teacher():
         quitButton = Button(recordframe, text = "Quit", font = ('calibri', 10, 'bold', 'underline'), foreground = 'red', command = quit).grid(row = 2, column = 1, pady = 20, padx = 10)
 
 
-    LiveClassLinkButton = Button(window3, image = liveClassPhoto, command = live_class).grid(row = 1, column = 0)
-    checkAttendanceButton = Button(window3, image = attendancePhoto, command = check_attendance).grid(row = 1, column = 1)
-    newAssignmentButton = Button(window3, image = assignmentPhoto).grid(row = 2, column = 0)
-    classNotesButton = Button(window3, image = classNotesPhoto, command = class_notes).grid(row = 2, column = 1)
-    classRecordingButton = Button(window3, image = classRecordingPhoto, command = class_recording).grid(row = 2, column = 2)
+    LiveClassLinkButton = Button(window3, image = liveClassPhoto, command = live_class).grid(row = 1, column = 0, padx = 30, pady = 40)
+    checkAttendanceButton = Button(window3, image = attendancePhoto, command = check_attendance).grid(row = 1, column = 1, padx = 30, pady = 40)
+    newAssignmentButton = Button(window3, image = assignmentPhoto, command = assignment).grid(row = 2, column = 0, padx = 30, pady = 40)
+    classNotesButton = Button(window3, image = classNotesPhoto, command = class_notes).grid(row = 2, column = 1, padx = 30, pady = 40)
+    classRecordingButton = Button(window3, image = classRecordingPhoto, command = class_recording).grid(row = 2, column = 2, padx = 30, pady = 40)
 
 
 def student():
 
     window4 = Toplevel()
     window4.title("Home Page")
-    window4.geometry("1000x600")
-    window4.configure(bg = "#f5f5dc")
+    window4.geometry("1100x800")
+    background_label = Label(window4, image = homescreen)
+    background_label.place(x=0, y=0, relwidth=1, relheight=1)
     window4.resizable(False, False)
+
+    sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+    mycursor.execute(sql)
+    student_name = mycursor.fetchall()
+    welcomeLabel = Label(window4, text = f"Welcome, {student_name[0][0]}!", font=("Helvetica", 24, "bold"), fg = "blue").grid(row = 0, column = 0, padx = 30, pady = 40)
 
     def live_class():
 
@@ -402,6 +460,74 @@ def student():
         driver.maximize_window()
         while True:
             pass
+
+    def check_attendance():
+
+        window_attendance = Toplevel()
+        window_attendance.title("Attendance")
+        window_attendance.geometry("600x600")
+        window_attendance.configure(bg = "#f5f5dc")
+        window_attendance.resizable(False, False)
+
+        sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+        mycursor.execute(sql)
+        student_name = mycursor.fetchall()
+
+        sql = f"SELECT * FROM attendance WHERE Student = '{student_name[0][0]}'"
+        mycursor.execute(sql)
+        result = mycursor.fetchall()
+
+        studLabel = Label(window_attendance, text = result[0][0]).grid(row = 0, column = 0)
+
+        fig = matplotlib.figure.Figure(figsize=(5, 5))
+        ax = fig.add_subplot(111)
+
+        school_start = datetime(2020, 3, 1)
+        now = datetime.now()
+        time_difference = now - school_start
+        days_passed = time_difference.days
+        present = result[0][1]
+        absent = days_passed - result[0][1]
+
+        ax.pie([present, absent])
+        ax.legend([f"Present: {present}", f"Absent: {absent}"])
+
+        circle=matplotlib.patches.Circle( (0,0), 0.7, color='white')
+        ax.add_artist(circle)
+
+        canvas = FigureCanvasTkAgg(fig, master=window_attendance)
+        canvas.get_tk_widget().grid(row = 1, column = 0)
+        canvas.draw()
+
+    def assignment():
+
+        assignmentWindow = Toplevel()
+        assignmentWindow.title("Assignments")
+        assignmentWindow.geometry("1200x700")
+        background_label = Label(assignmentWindow, image = matrixBackground)
+        background_label.place(x=0, y=0, relwidth=1, relheight=1)
+        assignmentWindow.resizable(False, False)
+        window4.wm_state('iconic')
+
+        def open_this(address):
+            os.startfile(address)
+
+        def cs_assignments():
+
+            sql = "SELECT * FROM assignments WHERE Subject = 'CS' order by Chapter"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+            print(result)
+
+            csframe = Frame(window_notes)
+            csframe.grid(row = 1, column = 1)
+
+
+        physicsAssignmentButton = Button(assignmentWindow, image = physicsphoto, font = ('Segoe Print', 12)).grid(row = 0, column = 0, padx = (20, 20), pady = 50)
+        mathsAssignmentButton = Button(assignmentWindow, image = mathsphoto, font = ('Segoe Print', 12)).grid(row = 0, column = 1, padx = (20, 20), pady = 50)
+        chemistryAssignmentButton = Button(assignmentWindow, image = chemphoto, font = ('Segoe Print', 12)).grid(row = 1, column = 0, padx = (20, 20), pady = 40)
+        csAssignmentButton = Button(assignmentWindow, image = csphoto, font = ('Segoe Print', 12), command = cs_assignments).grid(row = 1, column = 1, padx = (20, 20), pady = 40)
+
 
     def class_notes():
 
@@ -542,10 +668,11 @@ def student():
         csrecButton = Button(window_recording, image = csphoto, font = ('Segoe Print', 12), command = cs_recording).grid(row = 1, column = 1, padx = (20, 20), pady = 40)
 
 
-    LiveClassLinkButton = Button(window4, image = liveClassPhoto, command = live_class).grid(row = 1, column = 0)
-    newAssignmentButton = Button(window4, image = assignmentPhoto).grid(row = 1, column = 1)
-    classNotesButton = Button(window4, image = classNotesPhoto, command = class_notes).grid(row = 2, column = 0)
-    classRecordingButton = Button(window4, image = classRecordingPhoto, command = class_recording).grid(row = 2, column = 1)
+    LiveClassLinkButton = Button(window4, image = liveClassPhoto, command = live_class).grid(row = 1, column = 0, padx = 30, pady = 40)
+    checkAttendanceButton = Button(window4, image = attendancePhoto, command = check_attendance).grid(row = 1, column = 1, padx = 30, pady = 40)
+    newAssignmentButton = Button(window4, image = assignmentPhoto, command = assignment).grid(row = 2, column = 0, padx = 30, pady = 40)
+    classNotesButton = Button(window4, image = classNotesPhoto, command = class_notes).grid(row = 2, column = 1, padx = 30, pady = 40)
+    classRecordingButton = Button(window4, image = classRecordingPhoto, command = class_recording).grid(row = 2, column = 2, padx = 30, pady = 40)
 
 
 root = Tk()
@@ -560,6 +687,7 @@ root.resizable(False, False)
 #-------------------------------------IMAGES----------------------------------------------------------------
 #You need to initialise them here instead of inside the functions, otherwise they take too much time to load
 
+homescreen = PhotoImage(file = r"Images\home.png")
 liveClassPhoto = PhotoImage(file = r"Images\liveclass.png")
 classNotesPhoto = PhotoImage(file = r"Images\classnotes.png")
 classRecordingPhoto = PhotoImage(file = r"Images\recording.png")
