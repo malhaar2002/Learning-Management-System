@@ -7,7 +7,7 @@ import os
 import matplotlib.figure
 import matplotlib.patches
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from datetime import datetime
+import datetime
 
 mydb = mysql.connector.connect(
 host = "localhost",
@@ -170,6 +170,15 @@ def create_student():
             val = (studentChar.name, studentChar.pin, studentChar.regno, studentChar.dob, studentChar.contactno, studentChar.grade, studentChar.section, studentChar.emailID)
             mycursor.execute(sql, val)
             mydb.commit()
+
+            sql = f"INSERT INTO attendance (Student) VALUES ('{studentChar.name}')"
+            mycursor.execute(sql)
+            mydb.commit()
+
+            sql = f"ALTER TABLE assignments ADD {studentChar.name} VARCHAR(100)"
+            mycursor.execute(sql)
+            mydb.commit()
+
             accountCreatedLabel = Label(window_student, text = "Account created successfully!").grid(row = 11, column = 0)
 
         except Exception as e:
@@ -288,8 +297,8 @@ def teacher():
             fig = matplotlib.figure.Figure(figsize=(2,2))
             ax = fig.add_subplot(111)
 
-            school_start = datetime(2020, 3, 1)
-            now = datetime.now()
+            school_start = datetime.datetime(2020, 3, 1)
+            now = datetime.datetime.now()
             time_difference = now - school_start
             days_passed = time_difference.days
             present = result[i][1]
@@ -334,7 +343,7 @@ def teacher():
             mycursor.execute(sql)
             mydb.commit()
 
-            assignmentUploadSuccessful = Label(assignmentframe, text = "Notes uploaded successfully.").grid(row = 4, column = 0)
+            assignmentUploadSuccessful = Label(assignmentframe, text = "Assignment uploaded successfully.").grid(row = 4, column = 0)
 
         def quit():
 
@@ -482,8 +491,8 @@ def student():
         fig = matplotlib.figure.Figure(figsize=(5, 5))
         ax = fig.add_subplot(111)
 
-        school_start = datetime(2020, 3, 1)
-        now = datetime.now()
+        school_start = datetime.datetime(2020, 3, 1)
+        now = datetime.datetime.now()
         time_difference = now - school_start
         days_passed = time_difference.days
         present = result[0][1]
@@ -512,15 +521,273 @@ def student():
         def open_this(address):
             os.startfile(address)
 
+        def physics_assignments():
+
+            sql = "SELECT * FROM assignments WHERE Subject = 'Physics' order by Chapter"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            physicsframe = Frame(assignmentWindow)
+            physicsframe.grid(row = 0, column = 0)
+
+            chapter = Label(physicsframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            topic = Label(physicsframe, text = "Topic", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
+            deadline = Label(physicsframe, text = "Due in", font=("Helvetica", 15, "underline")).grid(row = 0, column = 2, padx = 20, pady = 20)
+
+            def choose_file():
+
+                filename = filedialog.askopenfilename(initialdir = "*", title = "Select a file", filetypes = (("pdf files", "*.pdf"), ("text files", "*.txt")))
+
+                sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+                mycursor.execute(sql)
+                studname = mycursor.fetchall()
+
+                sql = f"UPDATE assignments SET {studname[0][0]} = '{filename}' WHERE Chapter = '{result[i][1]}' AND Topic = '{result[i][2]}'"
+                mycursor.execute(sql)
+                mydb.commit()
+
+                assignmentUploadSuccessful = Label(physicsframe, text = "Assignment uploaded successfully.").grid(row = i+1, column = 5)
+
+            def quit():
+
+                physicsframe.grid_forget()
+                physicsframe.destroy()
+
+            for i in range(len(result)):
+
+                    chapterLabel = Label(physicsframe, text = f"{result[i][1]}").grid(row = i+1, column = 0, padx = 20, pady = 20)
+                    topicButton = Button(physicsframe, text = f"{result[i][2]}", command = partial(open_this, result[i][3])).grid(row = i+1, column = 1, padx = 20, pady = 20)
+
+                    today = datetime.date.today()
+                    duedate = result[i][4]
+
+                    if today < duedate:
+                        daysleft = str(duedate - today)
+                        daysleft = daysleft.split(",")
+                        daysleftLabel = Label(physicsframe, text = f"{daysleft[0]}").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    elif today > duedate:
+                        daysleftLabel = Label(physicsframe, text = "You missed the deadline :(").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    elif today == duedate:
+                        daysleftLabel = Label(physicsframe, text = "Today").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+                    mycursor.execute(sql)
+                    studname = mycursor.fetchall()
+
+                    sql = f"SELECT {studname[0][0]} FROM assignments WHERE Chapter = '{result[i][1]}' AND Topic = '{result[i][2]}'"
+                    mycursor.execute(sql)
+                    check = mycursor.fetchall()
+
+                    if check[0][0] == None:
+                        chooseFileButton = Button(physicsframe, text = "Upload", command = choose_file).grid(row = i+1, column = 3,padx = 20, pady = 20)
+
+                    else:
+                        alreadyuploadedLabel = Label(physicsframe, text = "Assignment submitted").grid(row = i+1, column = 3, padx = 20, pady = 20)
+
+            quitButton = Button(physicsframe, text = "Quit", font = ('calibri', 10, 'bold', 'underline'), foreground = 'red', command = quit).grid(row = len(result)+1, column = 0, pady = 20, padx = 10)
+
+        def maths_assignments():
+
+            sql = "SELECT * FROM assignments WHERE Subject = 'CS' order by Chapter"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            mathsframe = Frame(assignmentWindow)
+            mathsframe.grid(row = 0, column = 1)
+
+            chapter = Label(mathsframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            topic = Label(mathsframe, text = "Topic", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
+            deadline = Label(mathsframe, text = "Due in", font=("Helvetica", 15, "underline")).grid(row = 0, column = 2, padx = 20, pady = 20)
+
+            def choose_file():
+
+                filename = filedialog.askopenfilename(initialdir = "*", title = "Select a file", filetypes = (("pdf files", "*.pdf"), ("text files", "*.txt")))
+
+                sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+                mycursor.execute(sql)
+                studname = mycursor.fetchall()
+
+                sql = f"UPDATE assignments SET {studname[0][0]} = '{filename}' WHERE Chapter = '{result[i][1]}' AND Topic = '{result[i][2]}'"
+                mycursor.execute(sql)
+                mydb.commit()
+
+                assignmentUploadSuccessful = Label(mathsframe, text = "Assignment uploaded successfully.").grid(row = i+1, column = 5)
+
+            def quit():
+
+                mathsframe.grid_forget()
+                mathsframe.destroy()
+
+            for i in range(len(result)):
+
+                    chapterLabel = Label(mathsframe, text = f"{result[i][1]}").grid(row = i+1, column = 0, padx = 20, pady = 20)
+                    topicButton = Button(mathsframe, text = f"{result[i][2]}", command = partial(open_this, result[i][3])).grid(row = i+1, column = 1, padx = 20, pady = 20)
+
+                    today = datetime.date.today()
+                    duedate = result[i][4]
+
+                    if today < duedate:
+                        daysleft = str(duedate - today)
+                        daysleft = daysleft.split(",")
+                        daysleftLabel = Label(mathsframe, text = f"{daysleft[0]}").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    elif today > duedate:
+                        daysleftLabel = Label(mathsframe, text = "You missed the deadline :(").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    elif today == duedate:
+                        daysleftLabel = Label(mathsframe, text = "Today").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+                    mycursor.execute(sql)
+                    studname = mycursor.fetchall()
+
+                    sql = f"SELECT {studname[0][0]} FROM assignments WHERE Chapter = '{result[i][1]}' AND Topic = '{result[i][2]}'"
+                    mycursor.execute(sql)
+                    check = mycursor.fetchall()
+
+                    if check[0][0] == None:
+                        chooseFileButton = Button(mathsframe, text = "Upload", command = choose_file).grid(row = i+1, column = 3,padx = 20, pady = 20)
+
+                    else:
+                        alreadyuploadedLabel = Label(mathsframe, text = "Assignment submitted").grid(row = i+1, column = 3, padx = 20, pady = 20)
+
+            quitButton = Button(mathsframe, text = "Quit", font = ('calibri', 10, 'bold', 'underline'), foreground = 'red', command = quit).grid(row = len(result)+1, column = 0, pady = 20, padx = 10)
+
+        def chemistry_assignments():
+
+            sql = "SELECT * FROM assignments WHERE Subject = 'CS' order by Chapter"
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+
+            chemframe = Frame(assignmentWindow)
+            chemframe.grid(row = 1, column = 0)
+
+            chapter = Label(chemframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            topic = Label(chemframe, text = "Topic", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
+            deadline = Label(chemframe, text = "Due in", font=("Helvetica", 15, "underline")).grid(row = 0, column = 2, padx = 20, pady = 20)
+
+            def choose_file():
+
+                filename = filedialog.askopenfilename(initialdir = "*", title = "Select a file", filetypes = (("pdf files", "*.pdf"), ("text files", "*.txt")))
+
+                sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+                mycursor.execute(sql)
+                studname = mycursor.fetchall()
+
+                sql = f"UPDATE assignments SET {studname[0][0]} = '{filename}' WHERE Chapter = '{result[i][1]}' AND Topic = '{result[i][2]}'"
+                mycursor.execute(sql)
+                mydb.commit()
+
+                assignmentUploadSuccessful = Label(chemframe, text = "Assignment uploaded successfully.").grid(row = i+1, column = 5)
+
+            def quit():
+
+                chemframe.grid_forget()
+                chemframe.destroy()
+
+            for i in range(len(result)):
+
+                    chapterLabel = Label(chemframe, text = f"{result[i][1]}").grid(row = i+1, column = 0, padx = 20, pady = 20)
+                    topicButton = Button(chemframe, text = f"{result[i][2]}", command = partial(open_this, result[i][3])).grid(row = i+1, column = 1, padx = 20, pady = 20)
+
+                    today = datetime.date.today()
+                    duedate = result[i][4]
+
+                    if today < duedate:
+                        daysleft = str(duedate - today)
+                        daysleft = daysleft.split(",")
+                        daysleftLabel = Label(chemframe, text = f"{daysleft[0]}").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    elif today > duedate:
+                        daysleftLabel = Label(chemframe, text = "You missed the deadline :(").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    elif today == duedate:
+                        daysleftLabel = Label(chemframe, text = "Today").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+                    mycursor.execute(sql)
+                    studname = mycursor.fetchall()
+
+                    sql = f"SELECT {studname[0][0]} FROM assignments WHERE Chapter = '{result[i][1]}' AND Topic = '{result[i][2]}'"
+                    mycursor.execute(sql)
+                    check = mycursor.fetchall()
+
+                    if check[0][0] == None:
+                        chooseFileButton = Button(chemframe, text = "Upload", command = choose_file).grid(row = i+1, column = 3,padx = 20, pady = 20)
+
+                    else:
+                        alreadyuploadedLabel = Label(chemframe, text = "Assignment submitted").grid(row = i+1, column = 3, padx = 20, pady = 20)
+
+            quitButton = Button(chemframe, text = "Quit", font = ('calibri', 10, 'bold', 'underline'), foreground = 'red', command = quit).grid(row = len(result)+1, column = 0, pady = 20, padx = 10)
+
         def cs_assignments():
 
             sql = "SELECT * FROM assignments WHERE Subject = 'CS' order by Chapter"
             mycursor.execute(sql)
             result = mycursor.fetchall()
-            print(result)
 
-            csframe = Frame(window_notes)
+            csframe = Frame(assignmentWindow)
             csframe.grid(row = 1, column = 1)
+
+            chapter = Label(csframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            topic = Label(csframe, text = "Topic", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
+            deadline = Label(csframe, text = "Due in", font=("Helvetica", 15, "underline")).grid(row = 0, column = 2, padx = 20, pady = 20)
+
+            def choose_file():
+
+                filename = filedialog.askopenfilename(initialdir = "*", title = "Select a file", filetypes = (("pdf files", "*.pdf"), ("text files", "*.txt")))
+
+                sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+                mycursor.execute(sql)
+                studname = mycursor.fetchall()
+
+                sql = f"UPDATE assignments SET {studname[0][0]} = '{filename}' WHERE Chapter = '{result[i][1]}' AND Topic = '{result[i][2]}'"
+                mycursor.execute(sql)
+                mydb.commit()
+
+                assignmentUploadSuccessful = Label(csframe, text = "Assignment uploaded successfully.").grid(row = i+1, column = 5)
+
+            def quit():
+
+                csframe.grid_forget()
+                csframe.destroy()
+
+            for i in range(len(result)):
+
+                    chapterLabel = Label(csframe, text = f"{result[i][1]}").grid(row = i+1, column = 0, padx = 20, pady = 20)
+                    topicButton = Button(csframe, text = f"{result[i][2]}", command = partial(open_this, result[i][3])).grid(row = i+1, column = 1, padx = 20, pady = 20)
+
+                    today = datetime.date.today()
+                    duedate = result[i][4]
+
+                    if today < duedate:
+                        daysleft = str(duedate - today)
+                        daysleft = daysleft.split(",")
+                        daysleftLabel = Label(csframe, text = f"{daysleft[0]}").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    elif today > duedate:
+                        daysleftLabel = Label(csframe, text = "You missed the deadline :(").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    elif today == duedate:
+                        daysleftLabel = Label(csframe, text = "Today").grid(row = i+1, column = 2, padx = 20, pady = 20)
+
+                    sql = f"SELECT Name FROM students WHERE RegistrationNo = {regNoVar.get()}"
+                    mycursor.execute(sql)
+                    studname = mycursor.fetchall()
+
+                    sql = f"SELECT {studname[0][0]} FROM assignments WHERE Chapter = '{result[i][1]}' AND Topic = '{result[i][2]}'"
+                    mycursor.execute(sql)
+                    check = mycursor.fetchall()
+
+                    if check[0][0] == None:
+                        chooseFileButton = Button(csframe, text = "Upload", command = choose_file).grid(row = i+1, column = 3,padx = 20, pady = 20)
+
+                    else:
+                        alreadyuploadedLabel = Label(csframe, text = "Assignment submitted").grid(row = i+1, column = 3, padx = 20, pady = 20)
+
+            quitButton = Button(csframe, text = "Quit", font = ('calibri', 10, 'bold', 'underline'), foreground = 'red', command = quit).grid(row = len(result)+1, column = 0, pady = 20, padx = 10)
 
 
         physicsAssignmentButton = Button(assignmentWindow, image = physicsphoto, font = ('Segoe Print', 12)).grid(row = 0, column = 0, padx = (20, 20), pady = 50)
@@ -539,69 +806,84 @@ def student():
         window_notes.resizable(False, False)
         window4.wm_state('iconic')
 
-
         def open_this(address):
             os.startfile(address)
 
         def physics_notes():
 
+            physicsframe = Frame(window_notes)
+            physicsframe.grid(row = 0, column = 0)
+
+            chapter = Label(physicsframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            classno = Label(physicsframe, text = "Class No.", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
+
             sql = "SELECT * FROM physics where Notes is not NULL"
             mycursor.execute(sql)
             result = mycursor.fetchall()
 
-            physicsframe = Frame(window_notes)
-            physicsframe.grid(row = 0, column = 0)
-
             for i in range(len(result)):
-                link = f"{result[i][0]} Class {result[i][1]}"
+                link = f"Class {result[i][1]}"
                 global address
                 address = result[i][2]
-                noteLinkButton = Button(physicsframe, text = link, command = partial(open_this, address)).grid(row = 0, column = i)
+                chapterLabel = Label(physicsframe, text = result[i][0]).grid(row = i+1, column = 0)
+                noteLinkButton = Button(physicsframe, text = link, command = partial(open_this, address)).grid(row = i+1, column = 1, pady = 10)
 
         def maths_notes():
+
+            mathsframe = Frame(window_notes)
+            mathsframe.grid(row = 0, column = 1)
+
+            chapter = Label(mathsframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            classno = Label(mathsframe, text = "Class No.", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
 
             sql = "SELECT * FROM maths where Notes is not NULL"
             mycursor.execute(sql)
             result = mycursor.fetchall()
 
-            mathsframe = Frame(window_notes)
-            mathsframe.grid(row = 0, column = 1)
-
             for i in range(len(result)):
-                link = f"{result[i][0]} Class {result[i][1]}"
+                link = f"Class {result[i][1]}"
                 global address
                 address = result[i][2]
-                noteLinkButton = Button(mathsframe, text = link, command = partial(open_this, address)).grid(row = 0, column = i)
+                chapterLabel = Label(mathsframe, text = result[i][0]).grid(row = i+1, column = 0)
+                noteLinkButton = Button(mathsframe, text = link, command = partial(open_this, address)).grid(row = i+1, column = 1, pady = 10)
 
         def chemistry_notes():
 
             chemframe = Frame(window_notes)
             chemframe.grid(row = 1, column = 0)
 
+            chapter = Label(chemframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            classno = Label(chemframe, text = "Class No.", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
+
             sql = "SELECT * FROM chemistry where Notes is not NULL"
             mycursor.execute(sql)
             result = mycursor.fetchall()
 
             for i in range(len(result)):
-                link = f"{result[i][0]} Class {result[i][1]}"
+                link = f"Class {result[i][1]}"
                 global address
                 address = result[i][2]
-                noteLinkButton = Button(chemframe, text = link, command = partial(open_this, address)).grid(row = 0, column = i)
+                chapterLabel = Label(chemframe, text = result[i][0]).grid(row = i+1, column = 0)
+                noteLinkButton = Button(chemframe, text = link, command = partial(open_this, address)).grid(row = i+1, column = 1, pady = 10)
 
         def cs_notes():
 
             csframe = Frame(window_notes)
-            csframe.grid(row = 1, column = 1)
+            csframe.grid(row = 1, column = 1, padx = (20, 20), pady = 40)
+
+            chapter = Label(csframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            classno = Label(csframe, text = "Class No.", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
 
             sql = "SELECT * FROM cs where Notes is not NULL"
             mycursor.execute(sql)
             result = mycursor.fetchall()
 
             for i in range(len(result)):
-                link = f"{result[i][0]} Class {result[i][1]}"
+                link = f"Class {result[i][1]}"
                 global address
                 address = result[i][2]
-                noteLinkButton = Button(csframe, text = link, command = partial(open_this, address)).grid(row = 0, column = i)
+                chapterLabel = Label(csframe, text = result[i][0]).grid(row = i+1, column = 0)
+                noteLinkButton = Button(csframe, text = link, command = partial(open_this, address)).grid(row = i+1, column = 1, pady = 10)
 
         physicsnotesButton = Button(window_notes, image = physicsphoto, font = ('Segoe Print', 12), command = physics_notes).grid(row = 0, column = 0, padx = (20, 20), pady = 50)
         mathsnotesButton = Button(window_notes, image = mathsphoto, font = ('Segoe Print', 12), command = maths_notes).grid(row = 0, column = 1, padx = (20, 20), pady = 50)
@@ -623,44 +905,80 @@ def student():
             os.startfile(address)
 
         def physics_recording():
+
+            physicsframe = Frame(window_recording)
+            physicsframe.grid(row = 0, column = 0)
+
+            chapter = Label(physicsframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            classno = Label(physicsframe, text = "Class No.", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
+
             sql = "SELECT Chapter, ClassNumber, Recording FROM physics where Recording is not NULL"
             mycursor.execute(sql)
             result = mycursor.fetchall()
+
             for i in range(len(result)):
-                link = f"{result[i][0]} Class {result[i][1]}"
+                link = f"Class {result[i][1]}"
                 global address
                 address = result[i][2]
-                noteLinkButton = Button(window_recording, text = link, command = partial(open_this, address)).grid(row = 6, column = i)
+                chapterLabel = Label(physicsframe, text = result[i][0]).grid(row = i+1, column = 0)
+                noteLinkButton = Button(physicsframe, text = link, command = partial(open_this, address)).grid(row = i+1, column = 1, pady = 10)
 
         def maths_recording():
+
+            mathsframe = Frame(window_recording)
+            mathsframe.grid(row = 0, column = 1)
+
+            chapter = Label(mathsframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            classno = Label(mathsframe, text = "Class No.", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
+
             sql = "SELECT Chapter, ClassNumber, Recording FROM maths where Recording is not NULL"
             mycursor.execute(sql)
             result = mycursor.fetchall()
+
             for i in range(len(result)):
-                link = f"{result[i][0]} Class {result[i][1]}"
+                link = f"Class {result[i][1]}"
                 global address
                 address = result[i][2]
-                noteLinkButton = Button(window_recording, text = link, command = partial(open_this, address)).grid(row = 6, column = i)
+                chapterLabel = Label(mathsframe, text = result[i][0]).grid(row = i+1, column = 0)
+                noteLinkButton = Button(mathsframe, text = link, command = partial(open_this, address)).grid(row = i+1, column = 1, pady = 10)
 
         def chemistry_recording():
+
+            chemframe = Frame(window_recording)
+            chemframe.grid(row = 1, column = 0)
+
+            chapter = Label(chemframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            classno = Label(chemframe, text = "Class No.", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
+
             sql = "SELECT Chapter, ClassNumber, Recording FROM chemistry where Recording is not NULL"
             mycursor.execute(sql)
             result = mycursor.fetchall()
+
             for i in range(len(result)):
-                link = f"{result[i][0]} Class {result[i][1]}"
+                link = f"Class {result[i][1]}"
                 global address
                 address = result[i][2]
-                noteLinkButton = Button(window_recording, text = link, command = partial(open_this, address)).grid(row = 6, column = i)
+                chapterLabel = Label(chemframe, text = result[i][0]).grid(row = i+1, column = 0)
+                noteLinkButton = Button(chemframe, text = link, command = partial(open_this, address)).grid(row = i+1, column = 1, pady = 10)
 
         def cs_recording():
+
+            csframe = Frame(window_recording)
+            csframe.grid(row = 1, column = 1, padx = (20, 20), pady = 40)
+
+            chapter = Label(csframe, text = "Chapter", font=("Helvetica", 15, "underline")).grid(row = 0, column = 0, padx = 20, pady = 20)
+            classno = Label(csframe, text = "Class No.", font=("Helvetica", 15, "underline")).grid(row = 0, column = 1, padx = 20, pady = 20)
+
             sql = "SELECT Chapter, ClassNumber, Recording FROM cs where Recording is not NULL"
             mycursor.execute(sql)
             result = mycursor.fetchall()
+
             for i in range(len(result)):
-                link = f"{result[i][0]} Class {result[i][1]}"
+                link = f"Class {result[i][1]}"
                 global address
                 address = result[i][2]
-                noteLinkButton = Button(window_recording, text = link, command = partial(open_this, address)).grid(row = 6, column = i)
+                chapterLabel = Label(csframe, text = result[i][0]).grid(row = i+1, column = 0)
+                noteLinkButton = Button(csframe, text = link, command = partial(open_this, address)).grid(row = i+1, column = 1, pady = 10)
 
         physicsrecButton = Button(window_recording, image = physicsphoto, font = ('Segoe Print', 12), command = physics_recording).grid(row = 0, column = 0, padx = (20, 20), pady = 50)
         mathsrecButton = Button(window_recording, image = mathsphoto, font = ('Segoe Print', 12), command = maths_recording).grid(row = 0, column = 1, padx = (20, 20), pady = 50)
